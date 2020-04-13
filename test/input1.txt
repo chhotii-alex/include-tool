@@ -1,2 +1,16 @@
-##define STATUS=output
-Here is my ##output## file.
+##define STATUS output
+Here is my ##STATUS## file.
+##include input2.txt
+##env BAR
+##if ##FOO##
+FOO defined, and its value is ##FOO##.
+##elseif ##BAR##
+I have an environment variable named BAR defined,
+and its value is ##BAR##. But I don't have a FOO.
+##else
+Both FOO and BAR are either undefined or false.
+##end
+##if ##EXTRASTUFF##
+Here's some extra stuff if you asked for it.
+##end
+And, there's more stuff at the end of the file.

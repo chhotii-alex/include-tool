@@ -1,0 +1,6 @@
+Hey there, Bob!
+Here is my output file.
+Here's some stuff that was in another file.
+I have an environment variable named BAR defined,
+and its value is something. But I don't have a FOO.
+And, there's more stuff at the end of the file.

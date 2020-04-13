@@ -1,0 +1,6 @@
+Hey there, Charlie!
+Here is my output file.
+Here's some stuff that was in another file.
+FOO defined, and its value is Hello, world!.
+Here's some extra stuff if you asked for it.
+And, there's more stuff at the end of the file.

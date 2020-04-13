@@ -1,0 +1,14 @@
+export BAR=false
+../include -DNAME=Alice input.txt.include >output_a.txt
+
+export BAR=something
+../include -DNAME=Bob input.txt.include >output_b.txt
+
+../include -DNAME=Charlie -DFOO="Hello, world!" -PEXTRASTUFF input.txt.include >output_c.txt
+
+echo "This should have no output:"
+diff output_a_correct.txt output_a.txt
+echo "This should have no output:"
+diff output_b_correct.txt output_b.txt
+echo "This should have no output:"
+diff output_c_correct.txt output_c.txt

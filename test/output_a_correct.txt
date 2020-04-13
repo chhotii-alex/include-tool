@@ -1,0 +1,5 @@
+Hey there, Alice!
+Here is my output file.
+Here's some stuff that was in another file.
+Both FOO and BAR are either undefined or false.
+And, there's more stuff at the end of the file.
