@@ -66,7 +66,10 @@ int Includer::processArgument(string arg) {
     }
   }
   else {  // anything that isn't a flag on the command line is a file name
-    processFile(arg);
+    if (processFile(arg)) {
+      cerr << "Error processing file: " + arg << endl;
+      return 1;
+    }
   }
   return 0;
 }
@@ -105,6 +108,7 @@ int Includer::processFile(string filePath) {
   string line;
   while ( getline (file,line) ) {
     if (processLine(line)) {
+      cerr << "Error on this line: " << line << endl;
       return 1;
     }
   }
@@ -123,6 +127,7 @@ int Includer::lookForEnvironmentVariable(string name) {
     return 0;
   }
   else {
+    cerr << "Environment variable not found: " << name << endl;
     return 1;
   }
 }
@@ -229,6 +234,7 @@ int main(int argc, char *argv[]) {
   for (i = 1; i < argc; ++i) {
     string arg = string(argv[i]);
     if (include.processArgument(arg)) {
+      cerr << "Error processing argument: " << arg << endl;
       return 1;
     }
   } 
