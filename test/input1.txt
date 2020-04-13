@@ -1,0 +1,2 @@
+##define STATUS=output
+Here is my ##output## file.
