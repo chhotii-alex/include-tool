@@ -151,6 +151,7 @@ regex environmentLinePattern("^##env (\\w+)");
 regex macroPattern("##(\\w+)##");
 
 int Includer::processLine(string line) {
+  bool hasMissingMacro = false;
   smatch match;
   if (inSuppressedBlock) {  // We ignore lines that are within a rejected if-else branch...
     if (regex_search(line, match, controlPattern)) {  // UNLESS this line actually ends that block
@@ -178,6 +179,7 @@ int Includer::processLine(string line) {
         line = match.prefix().str() + value + match.suffix().str();
       }
       catch (out_of_range& err) {
+        hasMissingMacro = true;
         line = match.prefix().str() + match.suffix().str();
       }
     }
@@ -223,6 +225,9 @@ int Includer::processLine(string line) {
       }
       return 0;
     }
+  }
+  if (hasMissingMacro) {
+    return 1;
   }
   cout << line << endl;
   return 0;

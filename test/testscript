@@ -1,3 +1,5 @@
+#!/bin/bash
+
 export BAR=false
 ../include -DNAME=Alice input.txt.include >output_a.txt
 
@@ -6,9 +8,26 @@ export BAR=something
 
 ../include -DNAME=Charlie -DFOO="Hello, world!" -PEXTRASTUFF input.txt.include >output_c.txt
 
-echo "This should have no output:"
 diff output_a_correct.txt output_a.txt
-echo "This should have no output:"
+if [ $? -ne 0 ]
+then
+  echo "output_a test failed!"
+fi
+
 diff output_b_correct.txt output_b.txt
-echo "This should have no output:"
+if [ $? -ne 0 ]
+then
+  echo "output_b test failed!"
+fi
+
 diff output_c_correct.txt output_c.txt
+if [ $? -ne 0 ]
+then
+  echo "output_c test failed!"
+fi
+
+../include shoulderror.txt >/dev/null 2> /dev/null
+if [ $? -eq 0 ]
+then
+  echo "Processing shoulderror.txt failed to fail!"
+fi
