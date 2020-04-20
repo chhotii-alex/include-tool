@@ -1,0 +1,3 @@
+Here is a file
+that mentions something, namely ##MYMISSINGMACRO##, which doesn't exist.
+Got it?
