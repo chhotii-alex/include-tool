@@ -40,13 +40,11 @@ An ##if directive must be of the form:
 The following lines, up to the next ##elseif, ##else, or ##end, will either be processed or ignored, depending on the boolean
 value of the named macro: if it isn't defined, or is defined as either 0 or false, it's considered false; if it's defined 
 with any value, it's considered true. You can guess what ##elseif and ##else do. The final block must be terminated with an
-##end directive. (Note: Unlike in any real programming language, an ##if directive cannot be embedded inside a block. 
-Processing of these conditional directives is not recursive. Possibly that could be easily fixed?
-The result of an ##if followed by another ##if without an intervening ##end is undefined.) 
+##end directive. An ##if block may in turn contain embedded ##if blocks.
 
 Any line that isn't ignored, and isn't a directive, has any macro names substituted with their respective values, and then
 is copied to standard out. Macro names are surrounded by double hashes and can appear anywhere on a line. In this context,
-an undefined macro is an error. 
+an undefined macro is an error. ##HASHHASH## is an automatically-created macro that translates to ##. 
 
 Command-line flags:
 
