@@ -16,7 +16,7 @@ Directives include:<br/>
 
 A ##define directive must be of the form:
 <pre>
-##define KEY=value
+##define KEY value
 </pre>
 and creates a macro.
 
