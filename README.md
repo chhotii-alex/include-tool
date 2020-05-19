@@ -62,3 +62,7 @@ include file1.txt -PFOO file2.txt
 </pre>
 First file1.txt is processed, with FOO undefined, and then file2.txt is processed, with FOO defined as TRUE.
 
+Notes:
+
+1. On my Mac, compiling with g++ works: <tt>g++ include.cpp -o include</tt>
+2. If things are working correctly, test/testscript produces NO OUTPUT.
