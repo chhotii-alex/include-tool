@@ -1,0 +1,11 @@
+##define OTHER other macros
+
+This demonstrates getting ##HASHHASH## into the final output.
+To get ##HASHHASH## into the final output, the input must contain ##HASHHASH##HASHHASH##HASHHASH##.
+The ##HASHHASH##HASHHASH##HASHHASH## macro can co-exist with ##OTHER## on a line. 
+Then we can have a final output file that discusses include's syntax, displaying examples
+such as:
+##HASHHASH##if FOO
+  -- line dependend on FOO --
+##HASHHASH##end
+Enjoy!

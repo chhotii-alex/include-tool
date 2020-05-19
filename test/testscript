@@ -10,10 +10,18 @@ export BAR=something
 
 ../include -DFOO=true recursive.txt >output_recursive.txt
 
+../include -DFOO=true hashy.txt >output_hashy.txt
+
 diff output_recursive_correct.txt output_recursive.txt
 if [ $? -ne 0 ]
 then
   echo "nested if block test failed!"
+fi
+
+diff output_hashy_correct.txt output_hashy.txt
+if [ $? -ne 0 ]
+then
+  echo "the hash-hash macro failed!"
 fi
 
 diff output_a_correct.txt output_a.txt

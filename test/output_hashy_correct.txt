@@ -1,0 +1,10 @@
+
+This demonstrates getting ## into the final output.
+To get ## into the final output, the input must contain ##HASHHASH##.
+The ##HASHHASH## macro can co-exist with other macros on a line. 
+Then we can have a final output file that discusses include's syntax, displaying examples
+such as:
+##if FOO
+  -- line dependend on FOO --
+##end
+Enjoy!

@@ -274,16 +274,24 @@ void Includer::processLine(string line, ifstream &file) {
       lookForEnvironmentVariable(match.str(1));
       return;
     }
+    string prefix = "";
     while (regex_search(line, match, macroPattern)) {
       string key = match.str(1);
-      try {
-        string value = macros.at(key);
-        line = match.prefix().str() + value + match.suffix().str();
+      if (key == "HASHHASH") {
+	prefix = prefix + match.prefix().str() + "##";
+	line = match.suffix().str();
       }
-      catch (out_of_range& err) {
-        throw UndefinedMacroException(key);
+      else {
+	try {
+	  string value = macros.at(key);
+	  line = match.prefix().str() + value + match.suffix().str();
+	}
+	catch (out_of_range& err) {
+	  throw UndefinedMacroException(key);
+	}
       }
-    }
+    }  // END while macros in line
+    line = prefix + line;
   }
   cout << line << endl;
 }
