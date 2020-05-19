@@ -29,16 +29,55 @@ SOFTWARE.
 
 using namespace std;
 
+class IncludeException {
+};
+class BadArgumentException : public IncludeException {
+public:
+  BadArgumentException(string arg) {
+    this->arg = arg;
+  }
+  string arg;
+};
+class FileException : public IncludeException {
+public:
+  FileException(string path) {
+    this->path = path;
+  }
+  string path;
+};
+class EnvironmentException : public IncludeException {
+public:
+  EnvironmentException(string name) {
+    this->name = name;
+  }
+  string name;
+};
+class SyntaxException : public IncludeException {
+public:
+  SyntaxException(string line) {
+    this->line = line;
+  }
+  string line;
+};
+class UndefinedMacroException : public IncludeException {
+public:
+  UndefinedMacroException(string name) {
+    this->name = name;
+  }
+  string name;
+};
+
 class Includer {
 public:
   Includer();
-  int processArgument(string s);
+  void processArgument(string s);
   void processDefineArgument(string s);
   void processPredicate(string s);
-  int processFile(string filePath);
-  int processLine(string line);
+  void processFile(string filePath);
+  void processLine(string line);
+  //  void processConditional(ifstream file, string line);
   void defineMacro(string name, string value);
-  int lookForEnvironmentVariable(string name);
+  void lookForEnvironmentVariable(string name);
   bool isVarTruthy(string name);
 private: 
   map<string, string> macros;
@@ -51,7 +90,7 @@ Includer::Includer() {
   inSuppressedBlock = false;
 }
 
-int Includer::processArgument(string arg) {
+void Includer::processArgument(string arg) {
   if (arg.at(0) == '-') {
     switch (arg.at(1)) {
     case 'D': 
@@ -61,17 +100,18 @@ int Includer::processArgument(string arg) {
       processPredicate(arg);
       break;
     default:
-      cerr << "Bad argument: " << arg << '\n';
-      return 1;
+      throw BadArgumentException(arg);
     }
   }
   else {  // anything that isn't a flag on the command line is a file name
-    if (processFile(arg)) {
+    try {
+      processFile(arg);
+    }
+    catch ( IncludeException e) {
       cerr << "Error processing file: " + arg << endl;
-      return 1;
+      throw;
     }
   }
-  return 0;
 }
 
 
@@ -83,10 +123,9 @@ void Includer::processDefineArgument(string s) {
     defineMacro(match.str(1), match.str(2));
   }
   else {
-    cerr << "Bad argument: " << s << endl;
+    throw BadArgumentException(s);
   }
 }
-
 
 void Includer::processPredicate(string s) {
   regex pArgPattern("-P(\\w+)");
@@ -95,40 +134,41 @@ void Includer::processPredicate(string s) {
     defineMacro(match.str(1), "TRUE");
   }
   else {
-    cerr << "Bad argument: " << s << endl;
+    throw BadArgumentException(s);
   }
 }
 
-int Includer::processFile(string filePath) {
+void Includer::processFile(string filePath) {
   ifstream file(filePath.c_str(), ios::in);
   if (!file.is_open()) {
     cerr << "Could not open " << filePath << '\n';
-    return 1;
+    throw FileException(filePath);
   }
   string line;
   while ( getline (file,line) ) {
-    if (processLine(line)) {
+    try {
+      processLine(line);
+    }
+    catch (IncludeException e) {
       cerr << "Error on this line: " << line << endl;
-      return 1;
+      throw;
     }
   }
   file.close();
-  return 0;
 }
 
 void Includer::defineMacro(string name, string value) {
   macros.insert(pair<string, string>(name, value));
 }
 
-int Includer::lookForEnvironmentVariable(string name) {
+void Includer::lookForEnvironmentVariable(string name) {
   char *value = getenv(name.c_str());
   if (value) {
     defineMacro(name, string(value));
-    return 0;
   }
   else {
     cerr << "Environment variable not found: " << name << endl;
-    return 1;
+    throw EnvironmentException(name);
   }
 }
 
@@ -149,8 +189,22 @@ regex includeLinePattern("^##include (.+)");
 regex defineLinePattern("^##define (\\w+) (.*)");
 regex environmentLinePattern("^##env (\\w+)");
 regex macroPattern("##(\\w+)##");
-
-int Includer::processLine(string line) {
+/*
+void Includer::processConditional(ifstream file, string line) {
+  bool foundCondition = false;
+  do {
+    bool runThisBlock;
+    if (foundCondition) {
+      runThisBlock = false; // out of a set of if/elseif/else blocks, run only first with satisfied condition
+    }
+    else {
+      foundCondition = runThisBlock = conditionOnLine(line);
+    }
+    line = processBlock(file, runThisBlock);
+  } while (!isEndLine(line));
+}
+*/
+void Includer::processLine(string line) {
   bool hasMissingMacro = false;
   smatch match;
   if (inSuppressedBlock) {  // We ignore lines that are within a rejected if-else branch...
@@ -158,19 +212,21 @@ int Includer::processLine(string line) {
       inSuppressedBlock = false;
     }
     else {  // OK, so, didn't find i.e. ##else or ##end. Ignoring this line.
-      return 0;
+      return;
     }
   }
   if (regex_search(line, match, hashPattern)) { // if any ## anywhere
     if (regex_search(line, match, includeLinePattern)) {
-      return processFile(match.str(1));
+      processFile(match.str(1));
+      return;
     }
     else if (regex_search(line, match, defineLinePattern)) {
       defineMacro(match.str(1), match.str(2));
-      return 0;
+      return;
     }
     else if (regex_search(line, match, environmentLinePattern)) {
-      return lookForEnvironmentVariable(match.str(1));
+      lookForEnvironmentVariable(match.str(1));
+      return;
     }
     while (regex_search(line, match, macroPattern)) {
       string key = match.str(1);
@@ -206,7 +262,7 @@ int Includer::processLine(string line) {
           conditionalValue = isVarTruthy(match.str(1));
         }
         else {
-          return 1;
+	  throw SyntaxException(line);
         }
       }
       if ((!conditionalValue)) {
@@ -223,14 +279,13 @@ int Includer::processLine(string line) {
           ifBranchFound = true;
         }
       }
-      return 0;
+      return;
     }
   }
   if (hasMissingMacro) {
-    return 1;
+    throw UndefinedMacroException("");
   }
   cout << line << endl;
-  return 0;
 }
  
 int main(int argc, char *argv[]) {
@@ -238,7 +293,10 @@ int main(int argc, char *argv[]) {
   int i;
   for (i = 1; i < argc; ++i) {
     string arg = string(argv[i]);
-    if (include.processArgument(arg)) {
+    try {
+      include.processArgument(arg);
+    }
+    catch (IncludeException e) {
       cerr << "Error processing argument: " << arg << endl;
       return 1;
     }
