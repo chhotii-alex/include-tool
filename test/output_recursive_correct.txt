@@ -1,0 +1,10 @@
+Here's the start of the recursive file!
+
+Since Foo is defined, we are doing it!
+
+I'm a very reasonable file.
+And the answer to everything is 42.
+
+
+In conclusion, might I say, this has been a great file.
+

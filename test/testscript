@@ -8,6 +8,14 @@ export BAR=something
 
 ../include -DNAME=Charlie -DFOO="Hello, world!" -PEXTRASTUFF input.txt.include >output_c.txt
 
+../include -DFOO=true recursive.txt >output_recursive.txt
+
+diff output_recursive_correct.txt output_recursive.txt
+if [ $? -ne 0 ]
+then
+  echo "nested if block test failed!"
+fi
+
 diff output_a_correct.txt output_a.txt
 if [ $? -ne 0 ]
 then
@@ -31,3 +39,4 @@ if [ $? -eq 0 ]
 then
   echo "Processing shoulderror.txt failed to fail!"
 fi
+

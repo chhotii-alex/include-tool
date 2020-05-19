@@ -1,0 +1,21 @@
+Here's the start of the recursive file!
+##define IMPOSSIBLE false
+##define REASONABLE 42
+
+##if ##FOO##
+Since Foo is defined, we are doing it!
+
+##if ##IMPOSSIBLE##
+The impossible has occurred. IMPOSSIBLE has value ##IMPOSSIBLE##.
+##elseif ##REASONABLE##
+I'm a very reasonable file.
+And the answer to everything is ##REASONABLE##.
+##else
+I don't know what to do...
+
+##end
+
+##end
+
+In conclusion, might I say, this has been a great file.
+

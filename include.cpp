@@ -186,20 +186,21 @@ bool Includer::isVarTruthy(string value) {
 }
 
 regex hashPattern("##");
-regex endPattern("^##end");
-regex controlPattern("^##((?:else)?(?:if)?(?:end)?)(.*)");
+regex macroPattern("##(\\w+)##");
 regex includeLinePattern("^##include (.+)");
 regex defineLinePattern("^##define (\\w+) (.*)");
 regex environmentLinePattern("^##env (\\w+)");
-regex macroPattern("##(\\w+)##");
-regex ifPattern("^##(?:else)?if(?: (.+))?");
+
+regex ifPattern("^##if(?: (.+))?");
+regex elseifPattern("^##elseif(?: (.+))?");
 regex elsePattern("^##else *$");
+regex endPattern("^##end");
 
 string Includer::processBlock(ifstream &file, bool activated) {
   while (1) {
     string line;
     if ( getline(file, line) ) {
-      if (regex_search(line, controlPattern)) {
+      if (regex_search(line, elseifPattern) || regex_search(line, elsePattern) || regex_search(line, endPattern)) {
 	return line;
       }
       else if (activated) {
@@ -232,7 +233,7 @@ bool Includer::conditionOnLine(string line) {
       line = match.prefix().str() + match.suffix().str();
     }
   }
-  if (regex_search(line, match, ifPattern)) {
+  if (regex_search(line, match, elseifPattern) || regex_search(line, match, ifPattern)) {
     return isVarTruthy(match.str(1));
   }
   else {
