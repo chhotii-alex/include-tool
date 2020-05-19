@@ -74,8 +74,11 @@ public:
   void processDefineArgument(string s);
   void processPredicate(string s);
   void processFile(string filePath);
-  void processLine(string line);
-  //  void processConditional(ifstream file, string line);
+  void processLine(string line, ifstream &file);
+  string processBlock(ifstream &file, bool activated);
+  bool isEndLine(string line);
+  bool conditionOnLine(string line);
+  void processConditional(ifstream &file, string line);
   void defineMacro(string name, string value);
   void lookForEnvironmentVariable(string name);
   bool isVarTruthy(string name);
@@ -145,9 +148,9 @@ void Includer::processFile(string filePath) {
     throw FileException(filePath);
   }
   string line;
-  while ( getline (file,line) ) {
+  while ( getline(file, line) ) {
     try {
-      processLine(line);
+      processLine(line, file);
     }
     catch (IncludeException e) {
       cerr << "Error on this line: " << line << endl;
@@ -182,15 +185,62 @@ bool Includer::isVarTruthy(string value) {
   return true;
 }
 
-enum controlKeywords{ NONE, IF, ELSE, ELSEIF, END };
 regex hashPattern("##");
+regex endPattern("^##end");
 regex controlPattern("^##((?:else)?(?:if)?(?:end)?)(.*)");
 regex includeLinePattern("^##include (.+)");
 regex defineLinePattern("^##define (\\w+) (.*)");
 regex environmentLinePattern("^##env (\\w+)");
 regex macroPattern("##(\\w+)##");
-/*
-void Includer::processConditional(ifstream file, string line) {
+regex ifPattern("^##(?:else)?if(?: (.+))?");
+regex elsePattern("^##else *$");
+
+string Includer::processBlock(ifstream &file, bool activated) {
+  while (1) {
+    string line;
+    if ( getline(file, line) ) {
+      if (regex_search(line, controlPattern)) {
+	return line;
+      }
+      else if (activated) {
+	processLine(line, file);
+      }
+    }
+    else {
+      throw SyntaxException("No ##end terminating block");
+    }
+  }
+}
+
+bool Includer::isEndLine(string line) {
+  return regex_search(line, endPattern);
+}
+
+bool Includer::conditionOnLine(string line) {
+  smatch match;
+  if (regex_search(line, match, elsePattern)) {
+    return true;
+  }
+  while (regex_search(line, match, macroPattern)) {
+    string key = match.str(1);
+    try {
+      string value = macros.at(key);
+      line = match.prefix().str() + value + match.suffix().str();
+    }
+    catch (out_of_range& err) {
+      // In the context of evaluating a conditional, an undefined macro just translates to an empty string and is not an error
+      line = match.prefix().str() + match.suffix().str();
+    }
+  }
+  if (regex_search(line, match, ifPattern)) {
+    return isVarTruthy(match.str(1));
+  }
+  else {
+    throw SyntaxException(line);
+  }
+}
+
+void Includer::processConditional(ifstream &file, string line) {
   bool foundCondition = false;
   do {
     bool runThisBlock;
@@ -203,17 +253,12 @@ void Includer::processConditional(ifstream file, string line) {
     line = processBlock(file, runThisBlock);
   } while (!isEndLine(line));
 }
-*/
-void Includer::processLine(string line) {
-  bool hasMissingMacro = false;
+
+void Includer::processLine(string line, ifstream &file) {
   smatch match;
-  if (inSuppressedBlock) {  // We ignore lines that are within a rejected if-else branch...
-    if (regex_search(line, match, controlPattern)) {  // UNLESS this line actually ends that block
-      inSuppressedBlock = false;
-    }
-    else {  // OK, so, didn't find i.e. ##else or ##end. Ignoring this line.
-      return;
-    }
+  if (regex_search(line, match, ifPattern)) {  
+    processConditional(file, line);
+    return;
   }
   if (regex_search(line, match, hashPattern)) { // if any ## anywhere
     if (regex_search(line, match, includeLinePattern)) {
@@ -235,55 +280,9 @@ void Includer::processLine(string line) {
         line = match.prefix().str() + value + match.suffix().str();
       }
       catch (out_of_range& err) {
-        hasMissingMacro = true;
-        line = match.prefix().str() + match.suffix().str();
+        throw UndefinedMacroException(key);
       }
     }
-    // Now that we've substituted macro values, we can evaluate if's, elseif's. 
-    // Handle all the conditional-block logic.
-    if (regex_search(line, match, controlPattern)) {
-      controlKeywords control = NONE;
-      bool conditionalValue = true;
-      if (match.str(1) == "if") {
-        control = IF;
-      }
-      else if (match.str(1) == "else") {
-        control = ELSE;
-      }
-      else if (match.str(1) == "elseif") {
-        control = ELSEIF;
-      }
-      else if (match.str(1) == "end") {
-        control = END;
-      }
-      if ((control == IF) || (control == ELSEIF)) {
-        regex ifPattern("##(?:else)?if (.*)");
-        if (regex_search(line, match, ifPattern)) {
-          conditionalValue = isVarTruthy(match.str(1));
-        }
-        else {
-	  throw SyntaxException(line);
-        }
-      }
-      if ((!conditionalValue)) {
-        inSuppressedBlock = true;
-      }
-      if ((control == ELSEIF || control == ELSE)  && ifBranchFound) {
-        inSuppressedBlock = true;
-      }
-      if (conditionalValue) {
-        if (control == END) {
-          ifBranchFound = false;
-        }
-        else {
-          ifBranchFound = true;
-        }
-      }
-      return;
-    }
-  }
-  if (hasMissingMacro) {
-    throw UndefinedMacroException("");
   }
   cout << line << endl;
 }
