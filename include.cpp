@@ -33,35 +33,35 @@ class IncludeException {
 };
 class BadArgumentException : public IncludeException {
 public:
-  BadArgumentException(string arg) {
+  BadArgumentException(const string &arg) {
     this->arg = arg;
   }
   string arg;
 };
 class FileException : public IncludeException {
 public:
-  FileException(string path) {
+  FileException(const string &path) {
     this->path = path;
   }
   string path;
 };
 class EnvironmentException : public IncludeException {
 public:
-  EnvironmentException(string name) {
+  EnvironmentException(const string &name) {
     this->name = name;
   }
   string name;
 };
 class SyntaxException : public IncludeException {
 public:
-  SyntaxException(string line) {
+  SyntaxException(const string &line) {
     this->line = line;
   }
   string line;
 };
 class UndefinedMacroException : public IncludeException {
 public:
-  UndefinedMacroException(string name) {
+  UndefinedMacroException(const string &name) {
     this->name = name;
   }
   string name;
