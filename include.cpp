@@ -70,13 +70,13 @@ public:
 class Includer {
 public:
   Includer();
-  void processArgument(string s);
-  void processDefineArgument(string s);
-  void processPredicate(string s);
-  void processFile(string filePath);
+  void processArgument(const string &s);
+  void processDefineArgument(const string &s);
+  void processPredicate(const string &s);
+  void processFile(const string &filePath);
   void processLine(string line, ifstream &file);
   string processBlock(ifstream &file, bool activated);
-  bool isEndLine(string line);
+  bool isEndLine(const string &line);
   bool conditionOnLine(string line);
   void processConditional(ifstream &file, string line);
   void defineMacro(string name, string value);
@@ -93,7 +93,7 @@ Includer::Includer() {
   inSuppressedBlock = false;
 }
 
-void Includer::processArgument(string arg) {
+void Includer::processArgument(const string &arg) {
   if (arg.at(0) == '-') {
     switch (arg.at(1)) {
     case 'D': 
@@ -119,7 +119,7 @@ void Includer::processArgument(string arg) {
 
 
 // syntax of a define argument is -Dname="value"
-void Includer::processDefineArgument(string s) {
+void Includer::processDefineArgument(const string &s) {
   regex dArgPattern("-D(\\w+)=(.*)");
   smatch match;
   if (regex_search(s, match, dArgPattern)) {
@@ -130,7 +130,7 @@ void Includer::processDefineArgument(string s) {
   }
 }
 
-void Includer::processPredicate(string s) {
+void Includer::processPredicate(const string &s) {
   regex pArgPattern("-P(\\w+)");
   smatch match;
   if (regex_search(s, match, pArgPattern)) {
@@ -141,7 +141,7 @@ void Includer::processPredicate(string s) {
   }
 }
 
-void Includer::processFile(string filePath) {
+void Includer::processFile(const string &filePath) {
   ifstream file(filePath.c_str(), ios::in);
   if (!file.is_open()) {
     cerr << "Could not open " << filePath << '\n';
@@ -161,7 +161,7 @@ void Includer::processFile(string filePath) {
 }
 
 void Includer::defineMacro(string name, string value) {
-  macros.insert(pair<string, string>(name, value));
+  macros[name] = value;
 }
 
 void Includer::lookForEnvironmentVariable(string name) {
@@ -213,7 +213,7 @@ string Includer::processBlock(ifstream &file, bool activated) {
   }
 }
 
-bool Includer::isEndLine(string line) {
+bool Includer::isEndLine(const string &line) {
   return regex_search(line, endPattern);
 }
 
