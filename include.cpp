@@ -79,9 +79,9 @@ public:
   bool isEndLine(const string &line);
   bool conditionOnLine(string line);
   void processConditional(ifstream &file, string line);
-  void defineMacro(string name, string value);
-  void lookForEnvironmentVariable(string name);
-  bool isVarTruthy(string name);
+  void defineMacro(string&& name, string&& value);
+  void lookForEnvironmentVariable(string&& name);
+  bool isVarTruthy(const string &name);
 private: 
   map<string, string> macros;
   bool ifBranchFound;
@@ -160,14 +160,14 @@ void Includer::processFile(const string &filePath) {
   file.close();
 }
 
-void Includer::defineMacro(string name, string value) {
+void Includer::defineMacro(string&& name, string&& value) {
   macros[name] = value;
 }
 
-void Includer::lookForEnvironmentVariable(string name) {
+void Includer::lookForEnvironmentVariable(string&& name) {
   char *value = getenv(name.c_str());
   if (value) {
-    defineMacro(name, string(value));
+    defineMacro(std::move(name), string(value));
   }
   else {
     cerr << "Environment variable not found: " << name << endl;
@@ -178,7 +178,7 @@ void Includer::lookForEnvironmentVariable(string name) {
 // Empty string, '0', and 'false' are false
 // Any other value is true
 // I'm not handling case conversion here. So, note, "FALSE" will be true!!!
-bool Includer::isVarTruthy(string value) {
+bool Includer::isVarTruthy(const string &value) {
   if (value.length() < 1) return false;
   if (value == "0") return false;
   if (value == "false") return false;
